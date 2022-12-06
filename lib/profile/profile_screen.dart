@@ -1,4 +1,6 @@
 import 'package:chat_app/profile/edit_profile.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +12,29 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  getCurrentUser() async {
+    var user = FirebaseAuth.instance.currentUser;
+
+    userData = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user?.email)
+        .get();
+
+    isloading = false;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  var userData;
+  bool isloading = true;
+
+  @override
+  void initState() {
+    getCurrentUser();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -17,45 +42,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: Text("Profile"),
       ),
-      body: Column(
-        children: [
-          SizedBox(
-            height: 10,
-          ),
-          Center(
-            child: ClipOval(
-              child: Image.network(
-                "https://imgs.search.brave.com/83Ern_UwWSpzNWG2sc7ngv_OaTdjUVLyQKG0UrBXQNI/rs:fit:840:871:1/g:ce/aHR0cHM6Ly9jbGlw/Z3JvdW5kLmNvbS9p/bWFnZXMvcmFuZG9t/LXBuZy01LmpwZw",
-                height: 0.4 * size.width,
-                width: 0.4 * size.width,
-                fit: BoxFit.fill,
-              ),
-            ),
-          ),
-          Text(
-            "Yogendra Roy",
-            style: Theme.of(context).textTheme.headline6,
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Text(
-            "yogendraray100@gmail.com",
-          ),
-          ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                    CupertinoPageRoute(builder: (context) => EditProfile()));
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+      body: isloading
+          ? Center(child: CircularProgressIndicator())
+          : Builder(builder: (context) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(Icons.edit),
-                  Text("Edit Profile"),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Center(
+                    child: ClipOval(
+                      child: Image.network(
+                        "https://imgs.search.brave.com/83Ern_UwWSpzNWG2sc7ngv_OaTdjUVLyQKG0UrBXQNI/rs:fit:840:871:1/g:ce/aHR0cHM6Ly9jbGlw/Z3JvdW5kLmNvbS9p/bWFnZXMvcmFuZG9t/LXBuZy01LmpwZw",
+                        height: 0.4 * size.width,
+                        width: 0.4 * size.width,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    userData['name'],
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    userData['email'],
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(CupertinoPageRoute(
+                            builder: (context) => EditProfile()));
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.edit),
+                          Text("Edit Profile"),
+                        ],
+                      ))
                 ],
-              ))
-        ],
-      ),
+              );
+            }),
     );
   }
 }
