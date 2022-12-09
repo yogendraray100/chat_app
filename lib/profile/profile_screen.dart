@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app/profile/edit_profile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,28 +13,29 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  getCurrentUser() async {
-    var user = FirebaseAuth.instance.currentUser;
+  final user = FirebaseAuth.instance.currentUser;
+  // getCurrentUser() async {
+  //   var user = FirebaseAuth.instance.currentUser;
 
-    userData = await FirebaseFirestore.instance
-        .collection("users")
-        .doc(user?.email)
-        .get();
+  //   userData = await FirebaseFirestore.instance
+  //       .collection("users")
+  //       .doc(user?.email)
+  //       .get();
 
-    isloading = false;
-    if (mounted) {
-      setState(() {});
-    }
-  }
+  //   isloading = false;
+  //   if (mounted) {
+  //     setState(() {});
+  //   }
+  // }
 
-  var userData;
-  bool isloading = true;
+  // var userData;
+  // bool isloading = true;
 
-  @override
-  void initState() {
-    getCurrentUser();
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   getCurrentUser();
+  //   super.initState();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -42,50 +44,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: Text("Profile"),
       ),
-      body: isloading
-          ? Center(child: CircularProgressIndicator())
-          : Builder(builder: (context) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Center(
-                    child: ClipOval(
-                      child: Image.network(
-                        "https://imgs.search.brave.com/83Ern_UwWSpzNWG2sc7ngv_OaTdjUVLyQKG0UrBXQNI/rs:fit:840:871:1/g:ce/aHR0cHM6Ly9jbGlw/Z3JvdW5kLmNvbS9p/bWFnZXMvcmFuZG9t/LXBuZy01LmpwZw",
-                        height: 0.4 * size.width,
-                        width: 0.4 * size.width,
-                        fit: BoxFit.cover,
+      body: StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection("users")
+              .doc(user?.uid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final userData = snapshot.data?.data() as Map<String, dynamic>;
+              return Builder(builder: (context) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Center(
+                      child: ClipOval(
+                        // child: Image.network(
+                        //   userData['image'],
+                        //   height: 0.4 * size.width,
+                        //   width: 0.4 * size.width,
+                        //   fit: BoxFit.cover,
+                        // ),
+                        child: CachedNetworkImage(
+                          imageUrl: userData['image'] ?? '',
+                          height: 0.4 * size.width,
+                          width: 0.4 * size.width,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) {
+                            return const Icon(Icons.person);
+                          },
+                          placeholder: (context, url) =>
+                              const Icon(Icons.person_off),
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    userData['name'],
-                    style: Theme.of(context).textTheme.headline6,
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    userData['email'],
-                  ),
-                  ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(CupertinoPageRoute(
-                            builder: (context) => EditProfile()));
-                      },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.edit),
-                          Text("Edit Profile"),
-                        ],
-                      ))
-                ],
-              );
-            }),
+                    Text(
+                      userData['name'],
+                      style: Theme.of(context).textTheme.headline6,
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      userData['email'],
+                    ),
+                    ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(CupertinoPageRoute(
+                              builder: (context) => EditProfile()));
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.edit),
+                            Text("Edit Profile"),
+                          ],
+                        ))
+                  ],
+                );
+              });
+            } else {
+              return const CircularProgressIndicator();
+            }
+          }),
     );
   }
 }
