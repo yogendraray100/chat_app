@@ -5,6 +5,7 @@ import 'package:chat_app/profile/profile_screen.dart';
 import 'package:chat_app/utils/app_functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +18,17 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final user = FirebaseAuth.instance.currentUser;
+
+  // @override
+  // void initState() {
+  //   FirebaseCrashlytics.instance.setCustomKey('user_id', user!.uid);
+  //   FirebaseCrashlytics.instance.setCustomKey('user_email', user!.email!);
+
+  //   FirebaseCrashlytics.instance.crash();
+
+  //   super.initState();
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -3,6 +3,8 @@ import 'package:chat_app/chat/chat_screen.dart';
 import 'package:chat_app/homepage.dart';
 import 'package:chat_app/utils/snacks.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -37,6 +39,31 @@ class _LoginScreenState extends State<LoginScreen> {
       showErrorSnack(e.toString());
     }
   }
+
+  @override
+  void initState() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      if (message.notification != null) {
+        print('Message also contained a notification: ${message.notification}');
+      }
+    });
+
+    getToken();
+    super.initState();
+  }
+
+  getToken() async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    print("Firebase Token is: $token");
+  }
+  // @override
+  // void initState() {
+  //   FirebaseCrashlytics.instance.crash();
+  //   super.initState();
+  // }
 
   @override
   Widget build(BuildContext context) {
